@@ -1,0 +1,27 @@
+(define-syntax assert
+  (syntax-rules ()
+    ((_ form)
+      (if (not form)
+        (begin
+          (error "Assertion" 'form "did not evaluate to true!")
+          (exit 1))))))
+
+(define-syntax defcontract
+  (syntax-rules (pre post)
+    ((_ nforms body)
+      (defcontract nforms (pre) (post) body))
+    ((_ nforms (pre cls ...) body)
+      (defcontract nforms (pre cls ...) (post) body))
+    ((_ nforms (post cls ...) body)
+      (defcontract nforms (pre) (post cls ...) body))
+    ((_ nforms (pre precls ...) (post postcls ...) body)
+      (with-environment env
+        (eval
+          (macro-expand
+            `(define nforms
+              (begin
+                ,@(map ($ (list 'assert %)) 'precls)
+                (define *ret* body)
+                ,@(map ($ (list 'assert %)) 'postcls)
+                *ret*)))
+          env)))))
