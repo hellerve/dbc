@@ -21,7 +21,8 @@
             `(define nforms
               (begin
                 ,@(map ($ (list 'assert %)) 'precls)
-                (define *ret* body)
-                ,@(map ($ (list 'assert %)) 'postcls)
-                *ret*)))
+                (let ((*ret* body))
+                  (begin
+                    ,@(map ($ (list 'assert %)) 'postcls)
+                    *ret*)))))
           env)))))
